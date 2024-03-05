@@ -166,8 +166,6 @@ def main() -> None:
             # "latitude": "feature_latitude",
             # "longitude": "feature_longitude",
             "time": "time_feature",
-            "cell": "feature_cell_id",
-            "track": "feature_track_id",
             "hdim_1": "y",
             "hdim_2": "x",
             "num": "detection_pixel_count",
