@@ -1,12 +1,13 @@
 #!/usr/bin/bash
 #SBATCH --partition=shared
-#SBATCH --time=1:00:00
-#SBATCH --mem=64G
+#SBATCH --time=0:30:00
+#SBATCH --mem=32G
+#SBATCH -n 1
 #SBATCH --job-name=tobac_detection
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1153
-#SBATCH --output=%A_%a.out
-#SBATCH --array=0-2
+#SBATCH --output=./logs/%A_%a.out
+#SBATCH --array=0-3652
 
 set -e
 ulimit -s 204800
