@@ -33,7 +33,7 @@ args = parser.parse_args()
 start_date = datetime.strptime(args.date, "%Y-%m-%d-%H:%M:%S")
 start_date = start_date + timedelta(days=args.offset)
 end_date = start_date + timedelta(hours=args.hours)
-save_path = pathlib.Path(args.s)
+save_path = pathlib.Path(args.s) / f"{start_date.strftime('%Y')}" 
 
 def get_tb(olr):
     """
@@ -197,7 +197,10 @@ def main() -> None:
         if np.issubdtype(var_type, np.integer) or np.issubdtype(var_type, np.floating):
             out_ds[var].encoding.update(comp)
 
-    out_ds.to_netcdf(save_path / f"tobac_{start_date.strftime('%Y%m%d-%H%M%S')}_{end_date.strftime('%Y%m%d-%H%M%S')}_ICON_feature_mask_file.nc")
+    out_ds.to_netcdf(
+        save_path 
+        / f"tobac_{start_date.strftime('%Y%m%d-%H%M%S')}_{end_date.strftime('%Y%m%d-%H%M%S')}_ICON_feature_mask_file.nc"
+    )
 
     out_ds.close()
 
