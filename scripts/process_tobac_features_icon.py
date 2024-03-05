@@ -201,7 +201,7 @@ if __name__ == "__main__":
     start_time = datetime.now()
     print(start_time, "Commencing DCC feature detection and segmentation", flush=True)
     if not save_path.exists():
-        save_path.mkdir()
+        save_path.mkdir(parents=True)
 
     print("Start date:", start_date.isoformat(), flush=True)
     print("Start date:", end_date.isoformat(), flush=True)
