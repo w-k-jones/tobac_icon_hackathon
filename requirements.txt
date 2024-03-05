@@ -1,3 +1,4 @@
+python=3.11
 gcm_filters
 xgcm
 cdo
@@ -33,3 +34,5 @@ requests
 fastparquet
 trackpy
 numba
+healpy
+pytest
