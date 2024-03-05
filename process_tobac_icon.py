@@ -207,7 +207,7 @@ def main() -> None:
         coords=(lat, lon),
     )
 
-    bt = get_tb(dataset.rlut.sel(time=slice(start_date, end_date)).isel(cell=pix))
+    bt = get_tb(dataset.rlut.sel(time=slice(start_date, end_date-timedelta(minutes=1))).isel(cell=pix))
 
     dt = 900  # in seconds
     dxy = 11100  # in meter (for Latitude)
@@ -301,7 +301,7 @@ def main() -> None:
     )
 
     del bt
-    precip = dataset.pr.sel(time=slice(start_date, end_date)).isel(cell=pix)
+    precip = dataset.pr.sel(time=slice(start_date, end_date-timedelta(minutes=1))).isel(cell=pix)
 
     from iris.analysis.cartography import area_weights
     from scipy.ndimage import labeled_comprehension
@@ -469,7 +469,7 @@ def main() -> None:
         if np.issubdtype(var_type, np.integer) or np.issubdtype(var_type, np.floating):
             out_ds[var].encoding.update(comp)
 
-    out_ds.to_netcdf(save_path / f"tobac_{start_date}_{end_date}_ICON_mask_file.nc")
+    out_ds.to_netcdf(save_path / f"tobac_{start_date.strftime("%Y%m%d-%H%M%S")}_{end_date.strftime("%Y%m%d-%H%M%S")}_ICON_mask_file.nc")
 
     out_ds.close()
 
