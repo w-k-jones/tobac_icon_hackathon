@@ -1,11 +1,9 @@
 import pathlib
-import sys
 from datetime import datetime, timedelta
 import argparse
 import warnings
 
 import numpy as np
-import pandas as pd
 import xarray as xr
 from iris.analysis.cartography import area_weights
 from scipy.ndimage import labeled_comprehension
@@ -13,12 +11,6 @@ from scipy.ndimage import labeled_comprehension
 import intake
 import healpy
 import tobac
-
-cmd_folder = pathlib.Path.cwd().parent.absolute()
-if cmd_folder not in sys.path:
-    sys.path.insert(0, str(cmd_folder))
-
-# from utils import data_formats, get_tb, calc_area_and_precip, is_track_mcs
 
 parser = argparse.ArgumentParser(description="""ICON tracking using tobac""")
 parser.add_argument("date", help="Date on which to start process", type=str)
