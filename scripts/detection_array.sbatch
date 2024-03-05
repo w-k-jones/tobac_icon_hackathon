@@ -6,7 +6,7 @@
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1153
 #SBATCH --output=./logs/%A_%a.out
-#SBATCH --array=0-3652
+#SBATCH --array=0-366
 
 set -e
 ulimit -s 204800
