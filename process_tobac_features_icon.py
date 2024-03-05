@@ -127,6 +127,7 @@ def main() -> None:
     features["max_precip"] = np.nan
     features["total_precip"] = np.nan
 
+    features["time"] = xr.CFTimeIndex(features["time"].to_numpy()).to_datetimeindex()
     features_t = features["time"].to_numpy()
     for time, mask in zip(precip["time"].data, segments.slices_over("time")):
         wh = features_t == time
