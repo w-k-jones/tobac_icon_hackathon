@@ -469,7 +469,7 @@ def main() -> None:
         if np.issubdtype(var_type, np.integer) or np.issubdtype(var_type, np.floating):
             out_ds[var].encoding.update(comp)
 
-    out_ds.to_netcdf(save_path / f"tobac_{start_date.strftime("%Y%m%d-%H%M%S")}_{end_date.strftime("%Y%m%d-%H%M%S")}_ICON_mask_file.nc")
+    out_ds.to_netcdf(save_path / f"tobac_{start_date.strftime('%Y%m%d-%H%M%S')}_{end_date.strftime('%Y%m%d-%H%M%S')}_ICON_mask_file.nc")
 
     out_ds.close()
 
