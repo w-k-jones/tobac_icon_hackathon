@@ -2,7 +2,6 @@
 #SBATCH --partition=shared
 #SBATCH --time=0:30:00
 #SBATCH --mem=32G
-#SBATCH -n 1
 #SBATCH --job-name=tobac_detection
 #SBATCH --mail-type=FAIL
 #SBATCH --account=bb1153
