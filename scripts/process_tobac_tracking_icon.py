@@ -11,14 +11,18 @@ import tobac
 parser = argparse.ArgumentParser(description="""ICON tracking using tobac""")
 parser.add_argument("date", help="Date on which to start process", type=str)
 parser.add_argument(
-    "-s", help="path to save output data", default="../data_out", type=str
+    "-s", help="path to save output data", default="/scratch/b/b382728/tobac_tracks", type=str
 )
 
 args = parser.parse_args()
 
 start_date = datetime.strptime(args.date, "%Y-%m-%d-%H:%M:%S")
+end_date = datetime(start_date.year + start_date.month//12, start_date.month % 12 + 1, start_date.day, start_date.hour, start_date.minute, start_date.second)
 
 data_path = pathlib.Path(f"/scratch/b/b382728/tobac_features/{start_date.strftime('%Y')}/{start_date.strftime('%m')}")
+save_path = pathlib.Path(args.s) / f"{start_date.strftime('%Y')}"
+if not save_path.exists():
+    save_path.mkdir(parents=True, exist_ok=True)
 
 files = sorted(list(data_path.glob("*/*_ICON_feature_mask_file.nc")))
 print("Files found:", len(files), flush=True)
@@ -164,3 +168,10 @@ out_ds = out_ds.rename_vars(
 
 out_ds = out_ds.assign_coords(mcs_tracks[0].to_xarray().coords)
 out_ds["is_track_mcs"] = mcs_tracks[0].to_xarray()
+
+out_ds.to_netcdf(
+    save_path 
+    / f"tobac_{start_date.strftime('%Y%m%d-%H%M%S')}_{end_date.strftime('%Y%m%d-%H%M%S')}_ICON_tracking_file.nc"
+)
+
+out_ds.close()
