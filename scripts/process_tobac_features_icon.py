@@ -14,7 +14,7 @@ import tobac
 
 parser = argparse.ArgumentParser(description="""ICON tracking using tobac""")
 parser.add_argument("date", help="Date on which to start process", type=str)
-parser.add_argument("hours", help="Number of hours to process", type=float, default=1)
+parser.add_argument("-hours", help="Number of hours to process", type=float, default=1)
 parser.add_argument("-offset", help="Number of days to offset from start date", default=0, type=int)
 parser.add_argument(
     "-s", help="path to save output data", default="../data_out", type=str
