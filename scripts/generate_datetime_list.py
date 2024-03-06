@@ -12,6 +12,6 @@ if __name__ == '__main__':
     t2 = datetime.datetime.strptime( t2_str, fmt )
  
     t = t1
-    while t <= t2:
+    while t < t2:
         print('%s' % t.strftime(fmt))
         t += datetime.timedelta(hours=hours)
