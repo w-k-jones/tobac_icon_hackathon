@@ -107,7 +107,7 @@ def main() -> None:
     )
 
     del bt
-    precip = dataset.pr.sel(time=slice(start_date, end_date-timedelta(minutes=1))).isel(cell=pix) * 1e3
+    precip = dataset.pr.sel(time=slice(start_date, end_date-timedelta(minutes=1))).isel(cell=pix) * 3.6e3
     
     # Get area array and calculate area of each segment
     segment_slice = segments[0]
