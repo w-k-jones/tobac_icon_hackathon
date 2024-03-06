@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 #SBATCH --partition=shared
 #SBATCH --time=0:30:00
-#SBATCH --mem=32G
+#SBATCH --mem=64G
 #SBATCH -n 1
 #SBATCH --job-name=tobac_detection
 #SBATCH --mail-type=FAIL
