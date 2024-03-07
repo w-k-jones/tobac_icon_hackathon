@@ -113,7 +113,7 @@ def process_clusters(tracks):
     clusters["cluster_total_precip"] = gb_clusters.total_precip.sum().to_numpy()
     
     return tracks, clusters
-    
+
 def max_consecutive_true(condition: np.ndarray[bool]) -> int:
     """Return the maximum number of consecutive True values in 'condition'
 
@@ -127,6 +127,8 @@ def max_consecutive_true(condition: np.ndarray[bool]) -> int:
     int
         the maximum number of consecutive True values in 'condition'
     """
+    if isinstance(condition, pd.Series):
+        condition = condition.to_numpy()
     if np.any(condition):
         return np.max(
             np.diff(
