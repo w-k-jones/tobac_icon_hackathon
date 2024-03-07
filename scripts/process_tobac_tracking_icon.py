@@ -9,8 +9,6 @@ import pandas as pd
 import xarray as xr
 import tobac
 
-logging.basicConfig(level=logging.WARNING)
-
 parser = argparse.ArgumentParser(description="""ICON tracking using tobac""")
 parser.add_argument("date", help="Date on which to start process", type=str)
 parser.add_argument("-files", default=None)
@@ -65,13 +63,20 @@ parameters_merge = dict(
     distance=dxy*10, frame_len=2, PBC_flag="hdim_2", min_h1=0, max_h1=1200, min_h2=0, max_h2=3600,
 )
 
-tracks = tobac.linking_trackpy(
-    combined_features,
-    None,
-    dt,
-    dxy,
-    **parameters_tracking,
-)
+class DisableLogger():
+    def __enter__(self):
+       logging.disable(logging.CRITICAL)
+    def __exit__(self, exit_type, exit_value, exit_traceback):
+       logging.disable(logging.NOTSET)
+
+with DisableLogger():
+    tracks = tobac.linking_trackpy(
+        combined_features,
+        None,
+        dt,
+        dxy,
+        **parameters_tracking,
+    )
 
 track_min_threshold = tracks.groupby("cell").threshold_value.min()
 valid_cells = track_min_threshold.index[track_min_threshold <= 225]
