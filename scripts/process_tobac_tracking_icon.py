@@ -2,11 +2,14 @@ import pathlib
 from datetime import datetime, timedelta
 import argparse
 import warnings
+import logging
 
 import numpy as np
 import pandas as pd
 import xarray as xr
 import tobac
+
+logging.basicConfig(level="warning")
 
 parser = argparse.ArgumentParser(description="""ICON tracking using tobac""")
 parser.add_argument("date", help="Date on which to start process", type=str)
@@ -104,8 +107,8 @@ def process_clusters(tracks):
     
     clusters["cluster_time"] = gb_clusters.time.first().to_numpy()
     
-    clusters["cluster_longitude"] = gb_clusters.apply(lambda x:weighted_circmean(x.longitude.to_numpy(), x.area.to_numpy(), low=0, high=360))
-    clusters["cluster_latitude"] = gb_clusters.apply(lambda x:np.average(x.latitude.to_numpy(), weights=x.area.to_numpy()))
+    clusters["cluster_longitude"] = gb_clusters.apply(lambda x:weighted_circmean(x.longitude.to_numpy(), x.area.to_numpy(), low=0, high=360), include_groups=False)
+    clusters["cluster_latitude"] = gb_clusters.apply(lambda x:np.average(x.latitude.to_numpy(), weights=x.area.to_numpy()), include_groups=False)
     
     clusters["cluster_area"] = gb_clusters.area.sum().to_numpy()
     clusters["cluster_max_precip"] = gb_clusters.max_precip.max().to_numpy()
@@ -156,9 +159,9 @@ def is_track_mcs(clusters: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         _description_
     """
-    consecutive_precip_max = clusters.groupby(["cluster_track_id"]).cluster_max_precip.apply(lambda x:max_consecutive_true(x>=10))
+    consecutive_precip_max = clusters.groupby(["cluster_track_id"]).cluster_max_precip.apply(lambda x:max_consecutive_true(x>=10), include_groups=False)
     
-    consecutive_area_max = clusters.groupby(["cluster_track_id"]).cluster_area.apply(lambda x:max_consecutive_true(x>=4e10))
+    consecutive_area_max = clusters.groupby(["cluster_track_id"]).cluster_area.apply(lambda x:max_consecutive_true(x>=4e10), include_groups=False)
     
     max_total_precip = clusters.groupby(["cluster_track_id"]).cluster_total_precip.max()
     
