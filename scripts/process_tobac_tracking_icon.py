@@ -27,7 +27,7 @@ if not save_path.exists():
 
 files = sorted(list(data_path.glob("*/*_ICON_feature_mask_file.nc")))
 if args.files is not None:
-    files = files[:args.files]
+    files = files[:int(args.files)]
 print("Files found:", len(files), flush=True)
 
 rename_vars = {
