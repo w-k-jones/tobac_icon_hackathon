@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=tobac_detection
+#SBATCH --job-name=tobac_tracking
 #SBATCH --partition=compute
 #SBATCH --nodes=1
 #SBATCH --ntasks=128
@@ -17,4 +17,4 @@ ulimit -c 0
 export PATH=/work/bb1153/b380352/tools:$PATH
 cmd=./process_tobac_tracking_icon.py
 lfile=$*
-start_proc_from_list -n 128 -p $cmd $lfile
+start_proc_from_list -n 64 -p $cmd $lfile
