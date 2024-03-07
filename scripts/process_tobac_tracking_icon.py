@@ -48,7 +48,7 @@ parameters_tracking = dict(
     method_linking="predict",
     adaptive_stop=0.2,
     adaptive_step=0.95,
-    stubs=2,
+    stubs=3,
     memory=0,
     PBC_flag="hdim_2",
     min_h2=0,
@@ -84,10 +84,32 @@ track_max_cell_len = tracks.groupby("track").apply(
     lambda df: max(df.groupby("cell").apply(len, include_groups=False))
 )
 
-valid_tracks = track_max_cell_len.index[track_max_cell_len >= 3]
+valid_tracks = track_max_cell_len.index[track_max_cell_len >= 5]
 wh_in_track = np.isin(tracks.track, valid_tracks)
 tracks = tracks[wh_in_track]
 
+
+from tobac.utils.periodic_boundaries import weighted_circmean
+
+def process_clusters(tracks):
+    groupby_order = ["frame", "track"]
+    tracks["cluster"] = (tracks.groupby(groupby_order).feature.cumcount()[tracks.sort_values(groupby_order).index]==0).cumsum().sort_index()
+    
+    gb_clusters = tracks.groupby("cluster")
+    
+    clusters = gb_clusters.track.first().to_frame().rename(columns=dict(track="cluster_track_id"))
+    
+    clusters["cluster_time"] = gb_clusters.time.first().to_numpy()
+    
+    clusters["cluster_longitude"] = gb_clusters.apply(lambda x:weighted_circmean(x.longitude.to_numpy(), x.area.to_numpy(), low=0, high=360))
+    clusters["cluster_latitude"] = gb_clusters.apply(lambda x:np.average(x.latitude.to_numpy(), weights=x.area.to_numpy()))
+    
+    clusters["cluster_area"] = gb_clusters.area.sum().to_numpy()
+    clusters["cluster_max_precip"] = gb_clusters.max_precip.max().to_numpy()
+    clusters["cluster_total_precip"] = gb_clusters.total_precip.sum().to_numpy()
+    
+    return tracks, clusters
+    
 def max_consecutive_true(condition: np.ndarray[bool]) -> int:
     """Return the maximum number of consecutive True values in 'condition'
 
@@ -116,7 +138,7 @@ def max_consecutive_true(condition: np.ndarray[bool]) -> int:
         return 0
 
 
-def is_track_mcs(features: pd.DataFrame) -> pd.DataFrame:
+def is_track_mcs(clusters: pd.DataFrame) -> pd.DataFrame:
     """Test whether each track in features meets the condtions for an MCS
 
     Parameters
@@ -129,32 +151,27 @@ def is_track_mcs(features: pd.DataFrame) -> pd.DataFrame:
     pd.DataFrame
         _description_
     """
-    consecutive_precip_max = tracks.groupby("track").apply(
-        lambda df: max_consecutive_true(
-            df.groupby("time").max_precip.max().to_numpy() >= 10
-        )
-    )
-    consecutive_area_max = tracks.groupby("track").apply(
-        lambda df: max_consecutive_true(
-            df.groupby("time").area.sum().to_numpy() >= 4e10
-        )
-    )
-    max_total_precip = tracks.groupby("track").apply(
-        lambda df: df.groupby("time").total_precip.sum().max()
-    )
-    max_feature_area = tracks.groupby("track").area.max()
+    consecutive_precip_max = clusters.groupby(["cluster_track_id"]).cluster_max_precip.apply(lambda x:max_consecutive_true(x>=10))
+    
+    consecutive_area_max = clusters.groupby(["cluster_track_id"]).cluster_area.apply(lambda x:max_consecutive_true(x>=4e10))
+    
+    max_total_precip = clusters.groupby(["cluster_track_id"]).cluster_total_precip.max()
     
     is_mcs = np.logical_and.reduce(
         [
             consecutive_precip_max >= 12,
             consecutive_area_max >= 12,
-            max_total_precip >= 2e10,
-            max_feature_area >= 4e10,
+            max_total_precip.to_numpy() >= 2e10,
         ]
     )
-    return pd.DataFrame(data=is_mcs, index=consecutive_precip_max.index)
+    mcs_tracks =  pd.Series(data=is_mcs, index=consecutive_precip_max.index)
+    mcs_tracks.index.name="track"
+    return mcs_tracks
 
-mcs_tracks = is_track_mcs(tracks)
+
+tracks, clusters = process_clusters(tracks)
+
+mcs_tracks = is_track_mcs(clusters)
 
 out_ds = tracks.set_index(tracks.feature).to_xarray()
 
@@ -163,11 +180,21 @@ out_ds = out_ds.rename_vars(
         "time": "time_feature",
         "hdim_1": "y",
         "hdim_2": "x",
+        "cell": "feature_cell_id",
+        "track": "feature_track_id",
+        "cluster": "feature_cluster_id"  
     }
 )
 
-out_ds = out_ds.assign_coords(mcs_tracks[0].to_xarray().coords)
-out_ds["is_track_mcs"] = mcs_tracks[0].to_xarray()
+cell_track_id = tracks.groupby("cell").track.first()
+
+out_ds = out_ds.assign_coords(cell_track_id.to_xarray().coords)
+out_ds = out_ds.assign_coords(clusters.to_xarray().coords)
+out_ds = out_ds.assign_coords(mcs_tracks.to_xarray().coords)
+
+out_ds["cell_track_id"] = cell_track_id.to_xarray()
+out_ds = xr.merge([out_ds, clusters.to_xarray()])
+out_ds["is_track_mcs"] = mcs_tracks.to_xarray()
 
 out_ds.to_netcdf(
     save_path 

@@ -2,7 +2,7 @@
 #SBATCH --job-name=tobac_tracking
 #SBATCH --partition=compute
 #SBATCH --nodes=1
-#SBATCH --ntasks=128
+#SBATCH --ntasks=40
 #SBATCH --exclusive
 #SBATCH --time=08:00:00
 #SBATCH --mail-type=FAIL
