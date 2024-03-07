@@ -6,7 +6,6 @@ import warnings
 import numpy as np
 import xarray as xr
 from iris.analysis.cartography import area_weights
-from scipy.ndimage import labeled_comprehension
 
 import intake
 import healpy
@@ -106,7 +105,20 @@ def main() -> None:
         features, bt.to_iris(), dxy, **parameters_segments,
     )
 
+    features["time"] = xr.CFTimeIndex(features["time"].to_numpy()).to_datetimeindex()
+    
+    print(datetime.now(), f"Calculating feature properties", flush=True)
+    features = tobac.utils.bulk_statistics.get_statistics_from_mask(
+        features, segments, bt, statistic=dict(mean_BT=np.nanmean), default=np.nan
+    )
     del bt
+
+    olr = dataset.rlut.sel(time=slice(start_date, end_date-timedelta(minutes=1))).isel(cell=pix)
+    features = tobac.utils.bulk_statistics.get_statistics_from_mask(
+        features, segments, olr, statistic=dict(mean_OLR=np.nanmean, min_OLR=np.nanmin), default=np.nan
+    )
+    del olr
+
     precip = dataset.pr.sel(time=slice(start_date, end_date-timedelta(minutes=1))).isel(cell=pix) * 3.6e3
     
     # Get area array and calculate area of each segment
@@ -114,50 +126,22 @@ def main() -> None:
     segment_slice.coord("latitude").guess_bounds()
     segment_slice.coord("longitude").guess_bounds()
     area = area_weights(segment_slice, normalize=False)
+    area = xr.DataArray(area, coords=dict(lat=precip.lat, lon=precip.lon), dims=["lat", "lon"])
 
-    features["area"] = np.nan
-    features["max_precip"] = np.nan
-    features["total_precip"] = np.nan
-
-    features["time"] = xr.CFTimeIndex(features["time"].to_numpy()).to_datetimeindex()
-    features_t = features["time"].to_numpy()
-    for time, mask in zip(precip["time"].data, segments.slices_over("time")):
-        wh = features_t == time
-        if np.any(wh):
-            feature_areas = labeled_comprehension(
-                area, mask.data, features[wh]["feature"], np.sum, area.dtype, np.nan
-            )
-            features.loc[wh, "area"] = feature_areas
-
-            step_precip = precip.sel({"time": time}).values
-            max_precip = labeled_comprehension(
-                step_precip,
-                mask.data,
-                features[wh]["feature"],
-                np.max,
-                area.dtype,
-                np.nan,
-            )
-
-            features.loc[wh, "max_precip"] = max_precip
-
-            feature_precip = labeled_comprehension(
-                area * step_precip,
-                mask.data,
-                features[wh]["feature"],
-                np.sum,
-                area.dtype,
-                np.nan,
-            )
-
-            features.loc[wh, "total_precip"] = feature_precip
+    features = tobac.utils.bulk_statistics.get_statistics_from_mask(
+        features, segments, area, statistic=dict(area=np.nansum), default=np.nan
+    )
+    features = tobac.utils.bulk_statistics.get_statistics_from_mask(
+        features, segments, precip, statistic=dict(max_precip=np.nanmax), default=np.nan
+    )
+    features = tobac.utils.bulk_statistics.get_statistics_from_mask(
+        features, segments, precip * area.values, statistic=dict(total_precip=np.nansum), default=np.nan
+    )
     
     out_ds = features.set_index(features.feature).to_xarray()
 
     out_ds = out_ds.rename_vars(
         {
-            # "latitude": "feature_latitude",
-            # "longitude": "feature_longitude",
             "time": "time_feature",
             "hdim_1": "y",
             "hdim_2": "x",
