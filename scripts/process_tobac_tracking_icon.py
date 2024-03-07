@@ -10,6 +10,7 @@ import tobac
 
 parser = argparse.ArgumentParser(description="""ICON tracking using tobac""")
 parser.add_argument("date", help="Date on which to start process", type=str)
+parser.add_argument("-end_date", default=None)
 parser.add_argument(
     "-s", help="path to save output data", default="/scratch/b/b382728/tobac_tracks", type=str
 )
@@ -17,7 +18,10 @@ parser.add_argument(
 args = parser.parse_args()
 
 start_date = datetime.strptime(args.date, "%Y-%m-%d-%H:%M:%S")
-end_date = datetime(start_date.year + start_date.month//12, start_date.month % 12 + 1, start_date.day, start_date.hour, start_date.minute, start_date.second)
+if args.end_date is None:
+    end_date = datetime(start_date.year + start_date.month//12, start_date.month % 12 + 1, start_date.day, start_date.hour, start_date.minute, start_date.second)
+else:
+    end_date = datetime.strptime(args.end_date, "%Y-%m-%d-%H:%M:%S")
 
 data_path = pathlib.Path(f"/scratch/b/b382728/tobac_features/{start_date.strftime('%Y')}/{start_date.strftime('%m')}")
 save_path = pathlib.Path(args.s) / f"{start_date.strftime('%Y')}"
