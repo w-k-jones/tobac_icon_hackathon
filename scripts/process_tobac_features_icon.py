@@ -188,7 +188,7 @@ if __name__ == "__main__":
         save_path.mkdir(parents=True, exist_ok=True)
 
     print("Start date:", start_date.isoformat(), flush=True)
-    print("Start date:", end_date.isoformat(), flush=True)
+    print("End date:", end_date.isoformat(), flush=True)
     print("Output save path:", save_path, flush=True)
 
     main()
