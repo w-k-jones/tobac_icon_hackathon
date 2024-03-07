@@ -9,7 +9,7 @@ import pandas as pd
 import xarray as xr
 import tobac
 
-logging.basicConfig(level="warning")
+logging.basicConfig(level=logging.WARNING)
 
 parser = argparse.ArgumentParser(description="""ICON tracking using tobac""")
 parser.add_argument("date", help="Date on which to start process", type=str)
