@@ -91,9 +91,7 @@ tracks["track"] = merges.feature_parent_track_id.data.astype(np.int64)
 track_start_time = tracks.groupby("track").time.min()
 tracks["time_track"] = tracks.time - track_start_time[tracks.track].to_numpy()
 
-track_max_cell_len = tracks.groupby("track").apply(
-    lambda df: max(df.groupby("cell").apply(len, include_groups=False))
-)
+track_max_cell_len = tracks.groupby(["track","cell"]).size().groupby("track").max()
 
 valid_tracks = track_max_cell_len.index[track_max_cell_len >= 5]
 wh_in_track = np.isin(tracks.track, valid_tracks)
