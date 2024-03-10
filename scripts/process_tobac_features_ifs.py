@@ -54,13 +54,18 @@ def main() -> None:
     cat = intake.open_catalog("https://data.nextgems-h2020.eu/catalog.yaml")
     dataset = cat.IFS['IFS_9-FESOM_5-production']['2D_hourly_healpix512_2020s'](chunks="auto", consolidated=False).to_dask()
 
-    lon = xr.DataArray(np.arange(0.05, 360, 0.1), dims=("lon",), name="lon", attrs=dict(units="degrees", standard_name="longitude"))
-    lat = xr.DataArray(np.arange(59.95, -60, -0.1), dims=("lat",), name="lat", attrs=dict(units="degrees", standard_name="latitude"))
-    
+    lon = xr.DataArray(
+        np.arange(0.05, 360, 0.1), dims=("lon",), name="lon", attrs=dict(units="degrees", standard_name="longitude")
+    )
+    lat = xr.DataArray(
+        np.arange(59.95, -60, -0.1), dims=("lat",), name="lat", attrs=dict(units="degrees", standard_name="latitude")
+    )
+
     pix = xr.DataArray(
-        healpy.ang2pix(dataset.crs.healpix_nside, *np.meshgrid(lon, lat), nest=True, lonlat=True),
+        healpy.ang2pix(512, *np.meshgrid(lon, lat), nest=True, lonlat=True),
         coords=(lat, lon),
     )
+
 
     olr = dataset.ttr.drop_vars(["lat", "lon"])\
         .sel(time=slice(start_date, end_date - timedelta(minutes=1)))\
