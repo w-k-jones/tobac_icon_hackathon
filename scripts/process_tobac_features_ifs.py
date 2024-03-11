@@ -52,7 +52,7 @@ def get_tb(olr):
 def main() -> None:
     print("Loading data", flush=True)
     cat = intake.open_catalog("https://data.nextgems-h2020.eu/catalog.yaml")
-    dataset = cat.IFS['IFS_9-FESOM_5-production']['2D_hourly_healpix512_2020s'](chunks="auto", consolidated=False).to_dask()
+    dataset = cat.IFS['IFS_9-FESOM_5-production'][f'2D_hourly_healpix512_{start_date.strftime("%Y")}'](chunks="auto", consolidated=False).to_dask()
 
     lon = xr.DataArray(
         np.arange(0.05, 360, 0.1), dims=("lon",), name="lon", attrs=dict(units="degrees", standard_name="longitude")
@@ -65,7 +65,6 @@ def main() -> None:
         healpy.ang2pix(512, *np.meshgrid(lon, lat), nest=True, lonlat=True),
         coords=(lat, lon),
     )
-
 
     olr = dataset.ttr.drop_vars(["lat", "lon"])\
         .sel(time=slice(start_date, end_date - timedelta(minutes=1)))\
